@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto mt-16 bg-white rounded-2xl shadow p-6">
+  <h2 class="text-xl font-bold mb-4">ورود</h2>
+  <form method="post" class="space-y-4">
+    <div>
+      <label class="text-sm">نام کاربری</label>
+      <input name="username" class="w-full border rounded-lg p-2" placeholder="admin">
+    </div>
+    <div>
+      <label class="text-sm">رمز عبور</label>
+      <input name="password" type="password" class="w-full border rounded-lg p-2" placeholder="•••••••">
+    </div>
+    <button class="w-full bg-indigo-600 text-white rounded-lg py-2">ورود</button>
+  </form>
+</div>
+{% endblock %}

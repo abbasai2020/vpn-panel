@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid md:grid-cols-3 gap-4 mb-6">
+  <div class="p-4 bg-white rounded-2xl shadow">
+    <div class="text-sm text-slate-500">دامنه</div>
+    <div class="text-lg font-bold">net.abbasai.fun/panel</div>
+  </div>
+  <div class="p-4 bg-white rounded-2xl shadow">
+    <div class="text-sm text-slate-500">Outline</div>
+    <div class="text-lg font-bold">{{ 'آماده توسعه' if outline_ready else 'غیرفعال' }}</div>
+  </div>
+  <div class="p-4 bg-white rounded-2xl shadow">
+    <div class="text-sm text-slate-500">وضعیت</div>
+    <div class="text-lg font-bold">Active</div>
+  </div>
+</div>
+
+<div class="mb-4 flex gap-2">
+  {% for p in ['reality','hysteria1','hysteria2'] %}
+    <a href="?proto={{p}}" class="px-4 py-2 rounded-xl border {{ 'bg-indigo-600 text-white' if current_proto==p else 'bg-white' }}">{{ p }}</a>
+  {% endfor %}
+</div>
+
+<div class="grid md:grid-cols-3 gap-6">
+  <div class="md:col-span-2 bg-white rounded-2xl shadow p-4">
+    <h3 class="font-bold mb-3">لیست کانفیگ‌های {{ current_proto }}</h3>
+    <div class="space-y-2">
+      {% for it in items %}
+        <div class="p-3 rounded-xl border flex items-center justify-between">
+          <div>
+            <div class="font-mono text-sm">{{ it.name }}</div>
+            <div class="text-xs text-slate-500">
+              {{ (it.size/1024)|round(1) }} KB • {{ it.created.strftime('%Y-%m-%d %H:%M') }}
+              {% if it.meta.speed %} • سرعت: {{ it.meta.speed }}{% endif %}
+              {% if it.meta.devices %} • دستگاه: {{ it.meta.devices }}{% endif %}
+              {% if it.days_left != '' %} • باقیمانده: {{ it.days_left }} روز{% endif %}
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <a class="px-3 py-1 rounded-lg bg-slate-200" href="/panel/dl/{{current_proto}}/{{it.name}}">دانلود</a>
+            <a class="px-3 py-1 rounded-lg bg-slate-200" href="/panel/api/{{current_proto}}/{{it.name}}" target="_blank">API</a>
+            <a class="px-3 py-1 rounded-lg bg-slate-200" href="/panel/qr/{{current_proto}}/{{it.name}}.png" target="_blank">QR</a>
+            <form method="post" action="/panel/delete" onsubmit="return confirm('حذف شود؟')">
+              <input type="hidden" name="proto" value="{{current_proto}}">
+              <input type="hidden" name="file" value="{{it.name}}">
+              <button class="px-3 py-1 rounded-lg bg-red-500 text-white">حذف</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="p-3 rounded-xl border text-sm text-slate-500">هنوز آیتمی وجود ندارد.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow p-4">
+    <h3 class="font-bold mb-3">ایجاد/افزودن کانفیگ</h3>
+    <form method="post" action="/panel/create" enctype="multipart/form-data" class="space-y-3">
+      <input type="hidden" name="proto" value="{{current_proto}}">
+      <div>
+        <label class="text-sm">نام</label>
+        <input name="name" class="w-full border rounded-lg p-2" placeholder="label-001">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-sm">سرعت</label>
+          <select name="speed" class="w-full border rounded-lg p-2">
+            <option value="">-</option>
+            <option>2.5 Mbps</option>
+            <option>7 Mbps</option>
+            <option>Unlimited</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm">دستگاه</label>
+          <select name="devices" class="w-full border rounded-lg p-2">
+            <option value="">-</option>
+            <option>2</option>
+            <option>5</option>
+            <option>7</option>
+            <option>Unlimited</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-sm">انقضا (روز)</label>
+        <select name="expiry" class="w-full border rounded-lg p-2">
+          <option value="0">نامحدود</option>
+          <option value="1">1</option>
+          <option value="7">7</option>
+          <option value="30">30</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-sm">لینک خام (اختیاری؛ مثل hy2:// یا vless://)</label>
+        <input name="raw_link" class="w-full border rounded-lg p-2" placeholder="hy2://... یا vless://...">
+      </div>
+      <div>
+        <label class="text-sm">آپلود فایل کانفیگ (اختیاری)</label>
+        <input type="file" name="file" class="w-full border rounded-lg p-2">
+      </div>
+      <button class="w-full bg-indigo-600 text-white rounded-lg py-2">ثبت</button>
+      <p class="text-xs text-slate-500">اگر فایل آپلود نشود، یک فایل نمونه برای {{current_proto}} ساخته می‌شود که قابل ویرایش است.</p>
+    </form>
+  </div>
+</div>
+{% endblock %}
