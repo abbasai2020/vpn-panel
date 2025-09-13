@@ -1,8 +1,8 @@
-bin/bash/!#
+ bin/bash/!#
 set -e
 
 echo "===================================="
-echo " 🚀 VPN Panel Installer - abbasai2020"
+echo " 🚀 VPN Panel Installer - abbasai2020 "
 echo "===================================="
 
 # Update system
@@ -11,40 +11,40 @@ apt update -y && apt upgrade -y
 # Install dependencies
 apt install -y curl git unzip python3 python3-pip docker.io docker-compose nginx
 
-# Clone project (if not already cloned)
+# Install directory
 INSTALL_DIR="/opt/vpn-panel"
+
+# Clone project if not exists
 if [ ! -d "$INSTALL_DIR" ]; then
     git clone https://github.com/abbasai2020/vpn-panel.git $INSTALL_DIR
+else
+    echo "📂 Project already exists in $INSTALL_DIR, skipping clone."
 fi
 
-# Setup python requirements
-pip3 install -r $INSTALL_DIR/requirements.txt || echo "No requirements.txt found, skipping."
+# Python requirements
+if [ -f "$INSTALL_DIR/requirements.txt" ]; then
+    pip3 install -r $INSTALL_DIR/requirements.txt
+else
+    echo "⚠️ No requirements.txt found, skipping Python dependencies."
+fi
 
-# Setup nginx config (placeholder)
-cp $INSTALL_DIR/nginx.conf /etc/nginx/sites-enabled/vpn-panel.conf || echo "No nginx.conf found, skipping."
-systemctl restart nginx
+# Nginx config placeholder
+if [ -f "$INSTALL_DIR/nginx.conf" ]; then
+    cp $INSTALL_DIR/nginx.conf /etc/nginx/sites-enabled/vpn-panel.conf
+    systemctl restart nginx
+else
+    echo "⚠️ No nginx.conf found, skipping Nginx setup."
+fi
 
-# Create systemd service
-cat > /etc/systemd/system/vpn-panel.service <<EOF
-[Unit]
-Description=VPN Panel Flask App
-After=network.target
+# Docker compose
+if [ -f "$INSTALL_DIR/docker-compose.yml" ]; then
+    cd $INSTALL_DIR
+    docker-compose up -d
+else
+    echo "⚠️ No docker-compose.yml found, skipping Docker setup."
+fi
 
-[Service]
-User=root
-WorkingDirectory=/opt/vpn-panel
-ExecStart=/usr/bin/python3 /opt/vpn-panel/app.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable vpn-panel
-systemctl start vpn-panel
-
-echo "===================================="
-echo " ✅ Installation Finished!"
-echo " Panel running as a systemd service."
-echo "===================================="
+echo "✅ Installation finished!"
+echo "------------------------------------"
+echo " Panel directory: $INSTALL_DIR"
+echo " Run panel manually with: python3 app.py"
