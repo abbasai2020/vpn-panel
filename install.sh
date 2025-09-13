@@ -1,35 +1,50 @@
 #!/bin/bash
 set -e
 
-echo "=============================="
-echo "   AbbasAI VPN Panel Setup    "
-echo "=============================="
+echo "===================================="
+echo " 🚀 VPN Panel Installer - abbasai2020"
+echo "===================================="
 
-# 1. Update system
-echo "[*] Updating system packages..."
+# Update system
 apt update -y && apt upgrade -y
 
-# 2. Install dependencies
-echo "[*] Installing dependencies..."
-apt install -y curl wget git jq nano socat
+# Install dependencies
+apt install -y curl git unzip python3 python3-pip docker.io docker-compose nginx
 
-# 3. Install Xray (base)
-echo "[*] Installing Xray core..."
-bash <(curl -Ls https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh) install
+# Clone project (if not already cloned)
+INSTALL_DIR="/opt/vpn-panel"
+if [ ! -d "$INSTALL_DIR" ]; then
+    git clone https://github.com/abbasai2020/vpn-panel.git $INSTALL_DIR
+fi
 
-# 4. Create config directories
-echo "[*] Creating config directories..."
-mkdir -p /opt/configs/reality
-mkdir -p /opt/configs/hysteria1
-mkdir -p /opt/configs/hysteria2
+# Setup python requirements
+pip3 install -r $INSTALL_DIR/requirements.txt || echo "No requirements.txt found, skipping."
 
-# 5. Create panel placeholder
-echo "[*] Creating panel placeholder..."
-mkdir -p /opt/vpn-panel
-echo "Panel coming soon..." > /opt/vpn-panel/index.html
+# Setup nginx config (placeholder)
+cp $INSTALL_DIR/nginx.conf /etc/nginx/sites-enabled/vpn-panel.conf || echo "No nginx.conf found, skipping."
+systemctl restart nginx
 
-# 6. Done
-echo "=============================="
-echo "✅ Base setup complete!"
-echo "You can now start adding protocol modules (Reality, Hysteria, etc.)"
-echo "=============================="
+# Create systemd service
+cat > /etc/systemd/system/vpn-panel.service <<EOF
+[Unit]
+Description=VPN Panel Flask App
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/vpn-panel
+ExecStart=/usr/bin/python3 /opt/vpn-panel/app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable vpn-panel
+systemctl start vpn-panel
+
+echo "===================================="
+echo " ✅ Installation Finished!"
+echo " Panel running as a systemd service."
+echo "===================================="
